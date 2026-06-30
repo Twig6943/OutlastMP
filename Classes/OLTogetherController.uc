@@ -202,7 +202,6 @@ event PlayerTick(float DeltaTime)
     local int     i;
     local vector  ExtraLoc, SmoothLoc, AnimVel;
     local rotator SmoothRot;
-    local rotator BodyRot;
     local float   Alpha;
 
     super.PlayerTick(DeltaTime);
@@ -245,31 +244,15 @@ event PlayerTick(float DeltaTime)
         SmoothLoc.Z = RemoteDummy[i].Location.Z + (ExtraLoc.Z - RemoteDummy[i].Location.Z) * Alpha;
         RemoteDummy[i].SetLocation(SmoothLoc);
 
-        // Use shortest-path angle delta to avoid the dummy spinning all
-        // the way around when crossing the rotator wrap boundary.
-        //
-        // IMPORTANT: only Yaw goes on the body actor. Pitch is camera/look
-        // direction, not body lean — applying it to the root actor's
-        // rotation tilts the entire mesh forward/backward, which desyncs
-        // the visible body angle from where the other player is actually
-        // looking and standing. Pitch is applied to the ShadowProxy (the
-        // 3rd-person mesh/head) only, the same way the real Pawn keeps its
-        // body Pitch at 0 while the camera bone handles up/down look.
-        SmoothRot.Pitch = RemoteDummy[i].Rotation.Pitch
-            + int(ShortestAngleDelta(RemoteDummy[i].Rotation.Pitch, RemoteRot[i].Pitch) * Alpha);
+        // Outlast has no head/body rotation split — character is a rigid
+        // whole. Apply Yaw to the root actor; ShadowProxy inherits it as a
+        // child component (local rotation stays at the default zero).
+        // Pitch is camera-only and must never be applied to the mesh.
+        SmoothRot.Pitch = 0;
         SmoothRot.Yaw   = RemoteDummy[i].Rotation.Yaw
-            + int(ShortestAngleDelta(RemoteDummy[i].Rotation.Yaw,   RemoteRot[i].Yaw)   * Alpha);
+            + int(ShortestAngleDelta(RemoteDummy[i].Rotation.Yaw, RemoteRot[i].Yaw) * Alpha);
         SmoothRot.Roll  = 0;
-
-        // Body: Yaw only, Pitch always flat
-        BodyRot.Pitch = 0;
-        BodyRot.Yaw   = SmoothRot.Yaw;
-        BodyRot.Roll  = 0;
-        RemoteDummy[i].SetRotation(BodyRot);
-
-        // Head/look: full Pitch+Yaw goes on the ShadowProxy mesh only
-        if (OLHero(RemoteDummy[i]) != None && OLHero(RemoteDummy[i]).ShadowProxy != None)
-            OLHero(RemoteDummy[i]).ShadowProxy.SetRotation(SmoothRot);
+        RemoteDummy[i].SetRotation(SmoothRot);
 
         AnimVel   = RemoteVel[i];
         AnimVel.Z = 0;
