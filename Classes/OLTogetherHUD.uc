@@ -20,6 +20,14 @@ event PostBeginPlay()
     NotifCount             = 0;
 }
 
+Event OnLostFocusPause(Bool bEnable) {
+    //bLostFocus = bEnable;
+    //if(bEnable && false) {
+        return;
+    //}
+    //Super.OnLostFocusPause(bEnable);
+}
+
 function AddNotification(string Msg)
 {
     local int i;
