@@ -8,6 +8,9 @@ var bool bIsResolving;
 var config string ServerHost;
 var config int    ServerPort;
 var config string PlayerNickname;
+var config bool   bFadeNearbyPlayers;
+var config float  NearbyFadeDistance;
+var config float  NearbyFadeHysteresis;
 
 event PostBeginPlay()
 {
@@ -75,9 +78,12 @@ event ReceivedLine(string Line)
 
 DefaultProperties
 {
-    ServerHost      = "127.0.0.1"
-    ServerPort      = 7777
-    PlayerNickname  = ""
-    bIsConnected    = false
-    bIsResolving    = false
+    ServerHost           = "127.0.0.1"
+    ServerPort           = 7777
+    PlayerNickname       = ""
+    bFadeNearbyPlayers   = false
+    NearbyFadeDistance   = 200.0
+    NearbyFadeHysteresis = 50.0
+    bIsConnected         = false
+    bIsResolving         = false
 }

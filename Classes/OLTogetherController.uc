@@ -23,7 +23,7 @@ struct RemotePlayerState
     var bool   bLastRemoteCamcorder;
     var int    LastRemoteCamcorderState;
     var bool   bDummyCrouched;
-    var int    LastAirborne;
+    var int    LastLocomotionMode;
     var name   LastCrouchAnim;
     var string Nickname;
 };
@@ -77,7 +77,8 @@ event PlayerTick(float DeltaTime)
     local rotator SmoothedRot;
     local AIController AIC;
     local int     i;
-    local float   Alpha;
+    local float   Alpha, DistToDummy;
+    local bool    bShouldFade;
     local OLHero  DH;
 
     super.PlayerTick(DeltaTime);
@@ -95,7 +96,8 @@ event PlayerTick(float DeltaTime)
                 $ int(Pawn.bIsCrouched) $ ","
                 $ (OLHero(Pawn) != None ? int(OLHero(Pawn).bCamcorderDesired) : 0) $ ","
                 $ (OLHero(Pawn) != None ? int(OLHero(Pawn).CamcorderState)    : 0) $ ","
-                $ (Pawn.Physics == PHYS_Falling ? 1 : 0);
+                $ (OLHero(Pawn) != None ? int(OLHero(Pawn).LocomotionMode) : 0) $ ","
+                $ (OLHero(Pawn) != None ? int(OLHero(Pawn).SpecialMove) : 0);
             NetworkLink.SendText(Payload $ "\n");
         }
 
@@ -150,11 +152,27 @@ event PlayerTick(float DeltaTime)
         RemotePlayers[i].DummyPlayer.Acceleration = AnimVel;
 
         DH = OLHero(RemotePlayers[i].DummyPlayer);
-        if (DH != None && RemotePlayers[i].LastAirborne == 0)
+        if (DH != None && RemotePlayers[i].LastLocomotionMode == 0)
         {
             DH.LocomotionMode = LM_Walk;
             if (RemotePlayers[i].bLastRemoteCrouched)
                 UpdateCrouchAnim(i, AnimVel);
+        }
+
+        // --- Proximity fade (speedrunner feature) ---
+        if (DH != None && Pawn != None && NetworkLink != None && NetworkLink.bFadeNearbyPlayers)
+        {
+            DistToDummy  = VSize(SmoothedLoc - Pawn.Location);
+            bShouldFade  = (DistToDummy < NetworkLink.NearbyFadeDistance);
+
+            // Hysteresis: once faded, stay hidden until player moves further away
+            if (!bShouldFade && DH.ShadowProxy != None && DH.ShadowProxy.HiddenGame)
+                bShouldFade = (DistToDummy < NetworkLink.NearbyFadeDistance + NetworkLink.NearbyFadeHysteresis);
+
+            if (DH.ShadowProxy != None)
+                DH.ShadowProxy.SetHidden(bShouldFade);
+            if (DH.HeadMesh != None)
+                DH.HeadMesh.SetHidden(bShouldFade);
         }
     }
 
@@ -224,7 +242,8 @@ function UpdateCrouchAnim(int Idx, vector AnimVel2D)
     if (DesiredAnim != RemotePlayers[Idx].LastCrouchAnim)
     {
         RemotePlayers[Idx].LastCrouchAnim = DesiredAnim;
-        DH.ShadowProxy.PlayAnim(DesiredAnim, 0.0, true, true);
+        if (DH.ShadowProxyFullBodyAnimSlot != None)
+            DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim(DesiredAnim, 1.0, 0.1, 0.0, true, true);
     }
 }
 
@@ -278,8 +297,8 @@ function PlayCrouchIdleFor(int PlayerID)
     Idx = FindRemoteIndex(PlayerID);
     if (Idx == -1) return;
     DH = OLHero(RemotePlayers[Idx].DummyPlayer);
-    if (DH != None && DH.ShadowProxy != None)
-        DH.ShadowProxy.PlayAnim('player_crouch_idle', 0.0, true, true);
+    if (DH != None && DH.ShadowProxyFullBodyAnimSlot != None)
+        DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim('player_crouch_idle', 1.0, 0.15, 0.0, true, true);
 }
 
 // --- Remote player lifetime ---
@@ -311,7 +330,7 @@ function OnReceiveData(string Data)
     local vector NewLoc, NewVel;
     local rotator NewRot;
     local bool bNewCrouched, bNewCamcorder;
-    local int NewCamcorderState, NewAirborne;
+    local int NewCamcorderState, NewLocoMode, OldLocoMode, NewSpecialMove;
     local int    SenderID, Idx;
     local string Nick;
     local OLHero DH;
@@ -376,7 +395,7 @@ function OnReceiveData(string Data)
                     NewState.bLastRemoteCamcorder     = false;
                     NewState.bLastRemoteCrouched      = false;
                     NewState.LastRemoteCamcorderState = 0;
-                    NewState.LastAirborne             = 0;
+                    NewState.LastLocomotionMode = 0;
                     NewState.LastCrouchAnim           = '';
                     NewState.TimerHelper = Spawn(class'OLTogetherRemoteTimer', self);
                     if (NewState.TimerHelper != None)
@@ -397,7 +416,7 @@ function OnReceiveData(string Data)
         return;
     }
 
-    if (Parts.Length < 14 || Parts[1] != "LOC")
+    if (Parts.Length < 15 || Parts[1] != "LOC")
         return;
 
     // Find or create state slot — dummy spawns later in PlayerTick
@@ -409,8 +428,8 @@ function OnReceiveData(string Data)
         NewState.bLastRemoteCamcorder     = false;
         NewState.bLastRemoteCrouched      = false;
         NewState.LastRemoteCamcorderState = 0;
-        NewState.LastAirborne             = 0;
-        NewState.LastCrouchAnim           = '';
+        NewState.LastLocomotionMode = 0;
+        NewState.LastCrouchAnim     = '';
         NewState.TimerHelper = Spawn(class'OLTogetherRemoteTimer', self);
         if (NewState.TimerHelper != None)
         {
@@ -435,7 +454,8 @@ function OnReceiveData(string Data)
     bNewCrouched      = int(Parts[10]) != 0;
     bNewCamcorder     = int(Parts[11]) != 0;
     NewCamcorderState = int(Parts[12]);
-    NewAirborne       = int(Parts[13]);
+    NewLocoMode       = int(Parts[13]);
+    NewSpecialMove    = int(Parts[14]);
 
     RemotePlayers[Idx].LastReceivedLoc  = NewLoc;
     RemotePlayers[Idx].LastReceivedVel  = NewVel;
@@ -454,21 +474,20 @@ function OnReceiveData(string Data)
     {
         RemotePlayers[Idx].bLastRemoteCrouched = bNewCrouched;
         RemotePlayers[Idx].bDummyCrouched      = bNewCrouched;
-        RemotePlayers[Idx].LastCrouchAnim      = '';
+        RemotePlayers[Idx].LastCrouchAnim      = 'player_crouch_idle';
         RemotePlayers[Idx].TimerHelper.ClearTimer('PlayCrouchIdle');
 
-        if (bNewCrouched)
-            RemotePlayers[Idx].DummyPlayer.ForceCrouch();
-        else
-            RemotePlayers[Idx].DummyPlayer.UnCrouch();
-
-        if (DH.ShadowProxy != None)
+        if (DH.ShadowProxyFullBodyAnimSlot != None)
         {
-            DH.ShadowProxy.PlayAnim(
-                bNewCrouched ? 'player_stand_to_crouch' : 'player_crouch_to_stand',
-                1.0, false, true);
             if (bNewCrouched)
+            {
+                DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim('player_stand_to_crouch', 1.0, 0.1, -1.0, false, true);
                 RemotePlayers[Idx].TimerHelper.SetTimer(0.55, false, 'PlayCrouchIdle');
+            }
+            else
+            {
+                DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim('player_crouch_to_stand', 1.0, 0.1, 0.0, false, true);
+            }
         }
         DH.LocomotionMode = LM_Walk;
     }
@@ -565,16 +584,82 @@ function OnReceiveData(string Data)
         RemotePlayers[Idx].LastRemoteCamcorderState = NewCamcorderState;
     }
 
-    // --- Airborne (jump / land) ---
-    if (NewAirborne != RemotePlayers[Idx].LastAirborne)
+    // --- Locomotion mode ---
+    if (NewLocoMode != RemotePlayers[Idx].LastLocomotionMode)
     {
-        RemotePlayers[Idx].LastAirborne = NewAirborne;
-        if (DH.ShadowProxy != None)
+        OldLocoMode = RemotePlayers[Idx].LastLocomotionMode;
+        RemotePlayers[Idx].LastLocomotionMode = NewLocoMode;
+
+        if (OldLocoMode == 8) // leaving locker — stop hide anim
         {
-            if (NewAirborne != 0)
-                DH.ShadowProxy.PlayAnim('player_jump', 0.0, true,  true);
-            else
-                DH.ShadowProxy.PlayAnim('player_land', 0.0, false, true);
+            if (DH.ShadowProxyFullBodyAnimSlot != None)
+                DH.ShadowProxyFullBodyAnimSlot.StopCustomAnim(0.1);
+        }
+
+        switch (NewLocoMode)
+        {
+            case 1: // LM_Fall — natural falling off ledge
+                DH.LocomotionMode = LM_Fall;
+                break;
+
+            case 2: // LM_SpecialMove — jump, enter/exit bed or locker, etc.
+                switch (NewSpecialMove)
+                {
+                    case 3: // SMT_JumpOnSpot
+                        if (DH.ShadowProxyFullBodyAnimSlot != None)
+                            DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim('player_jump_on_spot', 1.0, 0.1, 0.0, false, true);
+                        break;
+                    case 5: // SMT_JumpOver
+                        if (DH.ShadowProxyFullBodyAnimSlot != None)
+                            DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim('player_jump_from_run', 1.0, 0.1, 0.0, false, true);
+                        break;
+                    case 37: // SMT_OpenLockerFromOutside — opens locker door from outside (visible to others)
+                        if (DH.ShadowProxyFullBodyAnimSlot != None)
+                            DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim('player_locker_open_straight', 1.0, 0.1, 0.2, false, true);
+                        break;
+                    case 38: // SMT_EnterLocker — body moves inside; blend to hide pose
+                        if (DH.ShadowProxyFullBodyAnimSlot != None)
+                            DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim('player_locker_hide', 1.0, 0.3, -1.0, true, true);
+                        break;
+                    case 40: // SMT_EnterBed
+                        if (DH.ShadowProxyFullBodyAnimSlot != None)
+                            DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim(
+                                RemotePlayers[Idx].bLastRemoteCrouched
+                                    ? 'player_enter_bed_left' : 'player_enter_bed_left_stand',
+                                1.0, 0.15, 0.0, false, true);
+                        break;
+                    case 41: // SMT_ExitBed
+                        if (DH.ShadowProxyFullBodyAnimSlot != None)
+                            DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim('player_exit_bed_left', 1.0, 0.1, 0.1, false, true);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+
+            case 8: // LM_Locker — hiding in wardrobe/locker
+                if (DH.ShadowProxyFullBodyAnimSlot != None)
+                    DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim('player_locker_hide', 1.0, 0.2, -1.0, true, true);
+                break;
+
+            case 10: // LM_Bed — hiding under bed; C++ UpdateBedAnimation drives ShadowProxyBedAnimNode
+                DH.LocomotionMode = LM_Bed;
+                break;
+
+            case 0: // LM_Walk — back to normal
+            default:
+                DH.LocomotionMode = LM_Walk;
+                if (OldLocoMode == 1) // was falling
+                {
+                    if (DH.ShadowProxyFullBodyAnimSlot != None)
+                        DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim('player_land', 1.0, 0.05, 0.1, false, true);
+                }
+                else if (OldLocoMode == 8) // was in locker
+                {
+                    if (DH.ShadowProxyFullBodyAnimSlot != None)
+                        DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim('player_locker_exit', 1.0, 0.1, 0.1, false, true);
+                }
+                break;
         }
     }
 }
