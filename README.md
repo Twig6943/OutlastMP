@@ -1,4 +1,4 @@
-﻿# OutlastMP - Outlast 1 Multiplayer Mod
+﻿# OutlastMM - Outlast 1 Multiplayer Mod
 
 An unofficial multiplayer mod for **Outlast 1** built on UnrealScript / UDK.
 
@@ -8,12 +8,10 @@ An unofficial multiplayer mod for **Outlast 1** built on UnrealScript / UDK.
 
 ## Install & Run
 
-1. Download or clone the repository to any folder. **No Cyrillic characters in the path.**
-2. Copy `Multiplayer.u` into your Outlast directory: `OLGame\CookedPCConsole\OLMP\` (create the folder if it does not exist).
-3. Copy the `OLGame\Config\DefaultMultiplayer.ini` file into `<Outlast root>\OLGame\Config\`.
-4. Open `DefaultMultiplayer.ini` and set the server IP, port, and your nickname.
-5. Open `config.ini` and set the path to your Outlast executable (`GAME=...`).
-6. Run `omm.bat`.
+- Download or clone the repository to any folder. **No Cyrillic characters in the path.**
+- Copy the `OLGame` folder into the game's root directory.
+- Run `omm.bat`.
+- Go to ``[5] Settings`` and enter your ``Game Path``, ``Server IP``, ``Server Port``, and ``Nickname``. (Adjust other settings as you wish).
 
 ---
 
@@ -27,3 +25,4 @@ An unofficial multiplayer mod for **Outlast 1** built on UnrealScript / UDK.
 ## Additional Info 
 - The repository was previously based on the [OutlastTogether](https://github.com/MeinaWithAI/OutlastTogether) repository by [MeinaWithAI](https://github.com/MeinaWithAI/)
 - Beerymaid ([ShyKiss](https://github.com/ShyKiss)) also worked on this repository
+- Special thanks to the following people for helping with tests, sharing great ideas, and reporting bugs: [killer.entertainment](https://www.youtube.com/channel/UCmWa4fpC1ct13dqybMFlo2g), [ILYA GAMELOVER](https://www.youtube.com/@ILYAGAMELOVER), [Li_Huang](https://github.com/Liska3070), [Quazzar](https://www.speedrun.com/users/Quazzar), [SexterMorgan](https://www.speedrun.com/users/SexterMorgan), [seaagle](https://www.speedrun.com/users/seaagle), [DanishCraft](https://www.youtube.com/@DanishCraft)
