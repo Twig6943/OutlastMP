@@ -25,3 +25,4 @@ An unofficial multiplayer mod for **Outlast 1** built on UnrealScript / UDK.
 ## Additional Info 
 - The repository was previously based on the [OutlastTogether](https://github.com/MeinaWithAI/OutlastTogether) repository by [MeinaWithAI](https://github.com/MeinaWithAI/)
 - Beerymaid ([ShyKiss](https://github.com/ShyKiss)) also worked on this repository
+- Special thanks to the following people for helping with tests, sharing great ideas, and reporting bugs: [killer.entertainment](https://www.youtube.com/channel/UCmWa4fpC1ct13dqybMFlo2g), [ILYA GAMELOVER](https://www.youtube.com/@ILYAGAMELOVER), [Li_Huang](https://github.com/Liska3070), [Quazzar](https://www.speedrun.com/users/Quazzar), [SexterMorgan](https://www.speedrun.com/users/SexterMorgan), [seaagle](https://www.speedrun.com/users/seaagle), [DanishCraft](https://www.youtube.com/@DanishCraft)
