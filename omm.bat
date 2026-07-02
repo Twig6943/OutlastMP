@@ -113,6 +113,7 @@ echo   [2] Server IP:        %SERVER_HOST%
 echo   [3] Server Port:      %SERVER_PORT%
 echo   [4] Nickname:         %_N%
 echo   [5] Fade Nearby:      %FADE_NEARBY%
+echo   [6] Game Version:     %GAME_VERSION%
 echo.
 echo   [0] Back
 echo.
@@ -122,6 +123,7 @@ if "%SCHOICE%"=="2" goto EDIT_IP
 if "%SCHOICE%"=="3" goto EDIT_PORT
 if "%SCHOICE%"=="4" goto EDIT_NICK
 if "%SCHOICE%"=="5" goto EDIT_FADE
+if "%SCHOICE%"=="6" goto EDIT_VERSION
 if "%SCHOICE%"=="0" goto MENU
 goto SETTINGS
 
@@ -174,6 +176,26 @@ pause
 goto SETTINGS
 :SAVE_FADE
 set "SAVE_KEY=FADE_NEARBY" & set "SAVE_VAL=%FADE_NEARBY%" & call :SAVE_CONFIG
+goto SETTINGS
+
+:EDIT_VERSION
+cls
+echo.
+echo   Game Version
+echo   --------------------------------
+echo   [1] Win64  (default, most users)
+echo   [2] Win32
+echo.
+echo   [0] Back
+echo.
+set /p VCHOICE=    Choice:
+if "%VCHOICE%"=="1" ( set "GAME_VERSION=Win64" & goto SAVE_VERSION )
+if "%VCHOICE%"=="2" ( set "GAME_VERSION=Win32" & goto SAVE_VERSION )
+if "%VCHOICE%"=="0" goto SETTINGS
+goto EDIT_VERSION
+:SAVE_VERSION
+set "GAME=%GAME_DIR%\Binaries\%GAME_VERSION%\OLGame.exe"
+set "SAVE_KEY=GAME_VERSION" & set "SAVE_VAL=%GAME_VERSION%" & call :SAVE_CONFIG
 goto SETTINGS
 
 :: ─────────────────────────────────────────────
