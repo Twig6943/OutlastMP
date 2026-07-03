@@ -198,16 +198,44 @@ event PlayerTick(float DeltaTime)
             if (RemotePlayers[i].LastLocomotionMode == 0)
             {
                 DH.LocomotionMode = LM_Walk;
-                if (RemotePlayers[i].LastLeanDir != 0 && VSize(AnimVel) < 50.0)
+                if (RemotePlayers[i].bLastRemoteCrouched)
                 {
-                    DH.CurrentLean = (RemotePlayers[i].LastLeanDir == 1) ? -1.0 : 1.0;
+                    if (RemotePlayers[i].LastLeanDir != 0)
+                    {
+                        if (RemotePlayers[i].LastLeanDir == 1 &&
+                            RemotePlayers[i].LastCrouchAnim != 'player_crouch_lean_left')
+                        {
+                            if (DH.ShadowProxyFullBodyAnimSlot != None)
+                                DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim(
+                                    'player_crouch_lean_left', 1.0, 0.1, 0.0, true, true);
+                            RemotePlayers[i].LastCrouchAnim = 'player_crouch_lean_left';
+                        }
+                        else if (RemotePlayers[i].LastLeanDir == 2 &&
+                            RemotePlayers[i].LastCrouchAnim != 'player_crouch_lean_right')
+                        {
+                            if (DH.ShadowProxyFullBodyAnimSlot != None)
+                                DH.ShadowProxyFullBodyAnimSlot.PlayCustomAnim(
+                                    'player_crouch_lean_right', 1.0, 0.1, 0.0, true, true);
+                            RemotePlayers[i].LastCrouchAnim = 'player_crouch_lean_right';
+                        }
+                        DH.CurrentLean = (RemotePlayers[i].LastLeanDir == 1) ? -1.0 : 1.0;
+                    }
+                    else
+                    {
+                        DH.CurrentLean = 0.0;
+                        if (RemotePlayers[i].LastCrouchAnim == 'player_crouch_lean_left' ||
+                            RemotePlayers[i].LastCrouchAnim == 'player_crouch_lean_right')
+                            RemotePlayers[i].LastCrouchAnim = '';
+                        UpdateCrouchAnim(i, AnimVel);
+                    }
                 }
                 else
                 {
-                    DH.CurrentLean = 0.0;
+                    if (RemotePlayers[i].LastLeanDir != 0 && VSize(AnimVel) < 50.0)
+                        DH.CurrentLean = (RemotePlayers[i].LastLeanDir == 1) ? -1.0 : 1.0;
+                    else
+                        DH.CurrentLean = 0.0;
                 }
-                if (RemotePlayers[i].bLastRemoteCrouched)
-                    UpdateCrouchAnim(i, AnimVel);
             }
             else if (RemotePlayers[i].LastLocomotionMode == 15) // LM_ContextualLean
             {
