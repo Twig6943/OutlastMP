@@ -26,6 +26,8 @@ To update to a newer version, run `omm.bat` and choose `[6] Check for Updates`.
 - **Joiner:** choose `[2] Run Joiner` and enter a unique role number (1, 2, 3 ...). No two players can use the same number.
 - Load into the same checkpoint and enjoy!
 
-## Additional Info 
+### See [docs](./docs) for more info
+
+## Credits
 - Beerymaid ([ShyKiss](https://github.com/ShyKiss)) also worked on this repository
 - Special thanks to the following people for helping with tests, sharing great ideas, and reporting bugs: [killer.entertainment](https://www.youtube.com/channel/UCmWa4fpC1ct13dqybMFlo2g), [ILYA GAMELOVER](https://www.youtube.com/@ILYAGAMELOVER), [Li_Huang](https://github.com/Liska3070), [Quazzar](https://www.speedrun.com/users/Quazzar), [SexterMorgan](https://www.speedrun.com/users/SexterMorgan), [seaagle](https://www.speedrun.com/users/seaagle), [DanishCraft](https://www.youtube.com/@DanishCraft)
