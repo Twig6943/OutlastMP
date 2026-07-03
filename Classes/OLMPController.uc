@@ -198,7 +198,14 @@ event PlayerTick(float DeltaTime)
             if (RemotePlayers[i].LastLocomotionMode == 0)
             {
                 DH.LocomotionMode = LM_Walk;
-                DH.CurrentLean    = 0.0;
+                if (RemotePlayers[i].LastLeanDir != 0 && VSize(AnimVel) < 50.0)
+                {
+                    DH.CurrentLean = (RemotePlayers[i].LastLeanDir == 1) ? -1.0 : 1.0;
+                }
+                else
+                {
+                    DH.CurrentLean = 0.0;
+                }
                 if (RemotePlayers[i].bLastRemoteCrouched)
                     UpdateCrouchAnim(i, AnimVel);
             }
