@@ -3,7 +3,7 @@
 
 An unofficial multiplayer mod for **Outlast 1** built on UnrealScript / UDK.
 
-<img src="https://github.com/Heawikk/OutlastMP/raw/main/Prikol/perdezh.gif" width="100%">
+<img src="./Prikol/perdezh.gif" width="100%">
 
 ---
 
