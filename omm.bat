@@ -1,4 +1,5 @@
 @echo off
+SET MOD_VERSION=1.3.2
 setlocal enabledelayedexpansion
 
 cd /d "%~dp0"
@@ -7,13 +8,14 @@ CALL _load_config.cmd
 :MENU
 cls
 echo.
-echo   OutlastMP
+echo   OutlastMP v%MOD_VERSION%
 echo   --------------------------------
 echo   [1] Run Host
 echo   [2] Run Joiner
 echo   [3] Compile
 echo   [4] Run Server  (requires Python)
 echo   [5] Settings
+echo   [6] Check for Updates
 echo.
 echo   [0] Exit
 echo.
@@ -24,6 +26,7 @@ if "%CHOICE%"=="2" goto JOINER
 if "%CHOICE%"=="3" goto COMPILE
 if "%CHOICE%"=="4" goto SERVER
 if "%CHOICE%"=="5" goto SETTINGS
+if "%CHOICE%"=="6" goto CHECK_UPDATE
 if "%CHOICE%"=="0" exit /b 0
 goto MENU
 
@@ -95,6 +98,14 @@ start "" "%PY%" "%~dp0%BRIDGE_SCRIPT%"
 timeout /t 2 /nobreak >nul
 echo.
 echo   Server launched. Close the server window to shut down.
+pause
+goto MENU
+
+:: ─────────────────────────────────────────────
+:CHECK_UPDATE
+cls
+powershell -ExecutionPolicy Bypass -File "%~dp0Scripts\check_update.ps1" -LocalVersion "%MOD_VERSION%" -InstallDir "%~dp0"
+echo.
 pause
 goto MENU
 
