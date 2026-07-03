@@ -104,7 +104,7 @@ goto MENU
 :: ─────────────────────────────────────────────
 :CHECK_UPDATE
 cls
-powershell -ExecutionPolicy Bypass -File "%~dp0Scripts\check_update.ps1" -LocalVersion "%MOD_VERSION%" -InstallDir "%~dp0"
+powershell -ExecutionPolicy Bypass -File "%~dp0Scripts\check_update.ps1" -LocalVersion "%MOD_VERSION%" -InstallDir "%~dp0" -GameDir "%GAME_DIR%"
 echo.
 pause
 goto MENU

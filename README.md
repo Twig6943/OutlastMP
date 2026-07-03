@@ -9,10 +9,13 @@ An unofficial multiplayer mod for **Outlast 1** built on UnrealScript / UDK.
 
 ## Install & Run
 
-- Download or clone the repository to any folder. **No Cyrillic characters in the path.**
-- Copy the `OLGame` folder into the game's root directory.
-- Run `omm.bat`.
-- Go to ``[5] Settings`` and enter your ``Game Path``, ``Server IP``, ``Server Port``, and ``Nickname``. (Adjust other settings as you wish).
+1. Download the latest release ZIP from the [Releases](https://github.com/Heawikk/OutlastMP/releases/latest) page.
+2. Extract the archive to any folder. **No Cyrillic characters in the path.**
+3. Copy the `OLGame` folder into the game's root directory.
+4. Run `omm.bat`.
+5. Go to `[5] Settings` and enter your `Game Path`, `Server IP`, `Server Port`, and `Nickname`. (Adjust other settings as you wish.)
+
+To update to a newer version, run `omm.bat` and choose `[6] Check for Updates`.
 
 ---
 

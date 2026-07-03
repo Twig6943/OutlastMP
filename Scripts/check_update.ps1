@@ -1,6 +1,7 @@
 param(
     [string]$LocalVersion,
-    [string]$InstallDir
+    [string]$InstallDir,
+    [string]$GameDir
 )
 
 $Owner   = "Heawikk"
@@ -135,6 +136,18 @@ if ($skipped.Count -gt 0) {
 
 Remove-Item $tempZip  -Force -ErrorAction SilentlyContinue
 Remove-Item $tempDir  -Recurse -Force -ErrorAction SilentlyContinue
+
+# Copy Multiplayer.u to the game directory if known
+if ($GameDir -and (Test-Path $GameDir)) {
+    $modU   = Join-Path $installDirClean "OLGame\CookedPCConsole\OLMP\Multiplayer.u"
+    $gameU  = Join-Path $GameDir "OLGame\CookedPCConsole\OLMP\Multiplayer.u"
+    if (Test-Path $modU) {
+        $gameUDir = Split-Path $gameU
+        if (-not (Test-Path $gameUDir)) { New-Item -ItemType Directory -Path $gameUDir -Force | Out-Null }
+        Copy-Item $modU -Destination $gameU -Force
+        Write-Host "  Multiplayer.u copied to game directory." -ForegroundColor Green
+    }
+}
 
 Write-Host ""
 Write-Host "  Update to v$tagName applied successfully!" -ForegroundColor Green
